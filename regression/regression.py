@@ -55,11 +55,7 @@ except ImportError:
     '''
 
 
-def download_data(path):
-    # If your data is in an Excel file, install 'xlrd' and use
-    # pandas.read_excel instead of read_table
-    # from pandas import read_excel
-    # frame = read_excel(URL)
+def download_data(path, target_column):
 
     frame = read_table(
         path,
@@ -93,7 +89,7 @@ def download_data(path):
     # return frame
 
     # Return a subset of the columns
-    return frame[[156, 157, 158, TARGET_COLUMN]]
+    return frame[[156, 157, 158, target_column]]
 
 
 # =====================================================================

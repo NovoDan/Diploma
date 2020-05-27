@@ -96,10 +96,6 @@ def get_features_and_labels(frame):
     from sklearn.model_selection import train_test_split
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-    # sklearn.pipeline.make_pipeline could also be used to chain 
-    # processing and classification into a black box, but here we do
-    # them separately.
-
     # If values are missing we could impute them from the training data
     from sklearn.impute import SimpleImputer
     imputer = SimpleImputer(strategy='mean')
@@ -207,13 +203,6 @@ def plot(results, URL):
     # Display the plot in interactive UI
     plt.show()
 
-    # To save the plot to an image file, use savefig()
-    # plt.savefig('plot.png')
-
-    # Open the image file with the default image viewer
-    # import subprocess
-    # subprocess.Popen('plot.png', shell=True)
-
     # Closing the figure allows matplotlib to release the memory used.
     plt.close()
 
@@ -236,19 +225,3 @@ def analyze(app, path):
     app.print_logs("Друк результатів...")
     plot(results, path)
 
-# if __name__ == '__main__':
-#     # Download the data set from URL
-#     print("Downloading data from {}".format(URL))
-#     frame = download_data()
-#
-#     # Process data into feature and label arrays
-#     print("Processing {} samples with {} attributes".format(len(frame.index), len(frame.columns)))
-#     X_train, X_test, y_train, y_test = get_features_and_labels(frame)
-#
-#     # Evaluate multiple classifiers on the data
-#     print("Evaluating classifiers")
-#     results = list(evaluate_classifier(X_train, X_test, y_train, y_test))
-#
-#     # Display the results
-#     print("Plotting the results")
-#     plot(results)

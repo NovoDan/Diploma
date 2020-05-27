@@ -116,11 +116,3 @@ def start(app, settings):
 
     plt.close()
     return
-
-
-if __name__ == '__main__':  # Если мы запускаем файл напрямую, а не импортируем
-    plot_origin_dataset()
-    k_means_method()
-    tSNE_method()
-    dbscan_method()
-    plt.show()
