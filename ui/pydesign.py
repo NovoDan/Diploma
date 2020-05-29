@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'pydesign.ui'
+# Form implementation generated from reading ui file 'pydesign2.ui'
 #
 # Created by: PyQt5 UI code generator 5.14.2
 #
@@ -296,9 +296,9 @@ class Ui_MainWindow(object):
         self.label_14 = QtWidgets.QLabel(self.gb_clustering_settings)
         self.label_14.setGeometry(QtCore.QRect(200, 90, 71, 16))
         self.label_14.setObjectName("label_14")
-        self.lineEdit = QtWidgets.QLineEdit(self.gb_clustering_settings)
-        self.lineEdit.setGeometry(QtCore.QRect(310, 90, 113, 20))
-        self.lineEdit.setObjectName("lineEdit")
+        self.clustering_axes = QtWidgets.QLineEdit(self.gb_clustering_settings)
+        self.clustering_axes.setGeometry(QtCore.QRect(310, 90, 113, 20))
+        self.clustering_axes.setObjectName("clustering_axes")
         self.groupBox = QtWidgets.QGroupBox(self.clasterization_tab)
         self.groupBox.setGeometry(QtCore.QRect(10, 160, 881, 521))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
@@ -387,7 +387,7 @@ class Ui_MainWindow(object):
         self.label_13.setText(_translate("MainWindow", "Частина початкових даних \n"
 "для передбаченя"))
         self.data_to_predict_percent_regression.setPlaceholderText(_translate("MainWindow", "0.2"))
-        self.label_5.setText(_translate("MainWindow", "Цільовий стовпець"))
+        self.label_5.setText(_translate("MainWindow", "Цільовi стовпцi"))
         self.target_columns_line_regression.setPlaceholderText(_translate("MainWindow", "155"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.regression_tab), _translate("MainWindow", "Регресія"))
         self.gb_clustering_settings.setTitle(_translate("MainWindow", "НАЛАШТУВАННЯ"))
@@ -401,7 +401,7 @@ class Ui_MainWindow(object):
         self.btn_start_clustering.setText(_translate("MainWindow", "Старт"))
         self.data_to_predict.setPlaceholderText(_translate("MainWindow", "n1 n2 n3 n4"))
         self.label_14.setText(_translate("MainWindow", "Номера осей"))
-        self.lineEdit.setText(_translate("MainWindow", "0 1"))
+        self.clustering_axes.setText(_translate("MainWindow", "0 1"))
         self.groupBox.setTitle(_translate("MainWindow", "РЕЗУЛЬТАТИ"))
         self.label_3.setText(_translate("MainWindow", "Вхідні дані"))
         self.label_4.setText(_translate("MainWindow", "Передбачені дані"))

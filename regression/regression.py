@@ -34,8 +34,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
 from sklearn.model_selection import train_test_split
 
-default_columns = [156, 157, 158, 155]
-
 
 # =====================================================================
 
@@ -193,7 +191,7 @@ def plot(results, path):
 # =====================================================================
 
 def analyze(app, path, settings):
-    #Вилучення налаштувань з кортежу
+    # Вилучення налаштувань з кортежу
     separator = settings[0]
     index_column = settings[1]
     header_row = settings[2]

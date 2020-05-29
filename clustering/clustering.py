@@ -9,18 +9,18 @@ from sklearn.decomposition import PCA
 iris_df = datasets.load_iris()
 
 
-def plot_origin_dataset(axes):
+def plot_origin_dataset(axes, user_xaxis, user_yaxis):
 
-    # Розділення набору даних
-    x_axis = iris_df.data[:, 0]  # Sepal Length
-    y_axis = iris_df.data[:, 1]  # Sepal Width
+    # Розділення набору даних на осі
+    x_axis = iris_df.data[:, user_xaxis]
+    y_axis = iris_df.data[:, user_yaxis]
 
     # Побудова даних гарфіку
     axes[0][0].scatter(x_axis, y_axis, c=iris_df.target)
     axes[0][0].set_xlabel('Початкові дані')
 
 
-def k_means_method(axes, data_to_predict):
+def k_means_method(axes, data_to_predict, user_xaxis, user_yaxis):
     predicted_label_result = ''
     # Опис моделі
     model = KMeans(n_clusters=3)
@@ -30,7 +30,7 @@ def k_means_method(axes, data_to_predict):
 
     # Передбачення на одничному прикладі
     if data_to_predict:
-        predicted_label = model.predict([[7.0, 3.2, 4.7, 1.4]])
+        predicted_label = model.predict([data_to_predict])
         predicted_label_result = "Predicted: {}".format(predicted_label)
 
     # Передбачення на всьому наборі даних
@@ -40,8 +40,8 @@ def k_means_method(axes, data_to_predict):
     all_predictions_result = 'Передбачені міткі (Метод К-ередніх):\n {}'.format(model.predict(iris_df.data))
 
     # Розділення набору даних
-    x_axis = iris_df.data[:, 0]  # Sepal Length
-    y_axis = iris_df.data[:, 1]  # Sepal Width
+    x_axis = iris_df.data[:, user_xaxis]
+    y_axis = iris_df.data[:, user_yaxis]
 
     # Побудова масивів для граіиків
     axes[0][1].scatter(x_axis, y_axis, c=all_predictions)
@@ -52,7 +52,7 @@ def k_means_method(axes, data_to_predict):
     return result
 
 
-def tSNE_method(axes):
+def tSNE_method(axes, user_xaxis, user_yaxis):
     # Визначення моделі на швидкості навчання
     model = TSNE(learning_rate=100)
 
@@ -60,14 +60,14 @@ def tSNE_method(axes):
     transformed = model.fit_transform(iris_df.data)
 
     # Трансформування результату у двовимірний
-    x_axis = transformed[:, 0]
-    y_axis = transformed[:, 1]
+    x_axis = transformed[:, user_xaxis]
+    y_axis = transformed[:, user_yaxis]
 
     axes[1][0].scatter(x_axis, y_axis, c=iris_df.target)
     axes[1][0].set_xlabel('Метод t-SNE')
 
 
-def dbscan_method(axes):
+def dbscan_method(axes, user_xaxis, user_yaxis):
     # Визначення моделі
     dbscan = DBSCAN()
 
@@ -81,11 +81,11 @@ def dbscan_method(axes):
     # Побудова результатів у відповідності до трьох класів
     for i in range(0, pca_2d.shape[0]):
         if dbscan.labels_[i] == 0:
-            c1 = axes[1][1].scatter(pca_2d[i, 0], pca_2d[i, 1], c='r', marker='+')
+            c1 = axes[1][1].scatter(pca_2d[i, user_xaxis], pca_2d[i, user_yaxis], c='r', marker='+')
         elif dbscan.labels_[i] == 1:
-            c2 = axes[1][1].scatter(pca_2d[i, 0], pca_2d[i, 1], c='g', marker='o')
+            c2 = axes[1][1].scatter(pca_2d[i, user_xaxis], pca_2d[i, user_yaxis], c='g', marker='o')
         elif dbscan.labels_[i] == -1:
-            c3 = axes[1][1].scatter(pca_2d[i, 0], pca_2d[i, 1], c='b', marker='*')
+            c3 = axes[1][1].scatter(pca_2d[i, user_xaxis], pca_2d[i, user_yaxis], c='b', marker='*')
 
     axes[1][1].legend([c1, c2, c3], ['Кластер 1', 'Кластер 2', 'Шум'])
     axes[1][1].set_xlabel('Метод t-SNE')
@@ -93,6 +93,14 @@ def dbscan_method(axes):
 
 def start(app, settings):
     data_to_predict = None
+    user_xaxis = 0
+    user_yaxis = 1
+
+    if settings[5]:
+        user_axes = settings[5]
+        user_xaxis = user_axes[0]
+        user_yaxis = user_axes[1]
+
     # Визначення максимальної кількості графіків
     fig, axes = plt.subplots(nrows=2, ncols=2)
     app.print_logs('Початок кластеризації...')
@@ -102,21 +110,22 @@ def start(app, settings):
                                                                                             iris_df.target,
                                                                                             iris_df.data))
     # Створення графіку початкових даних
-    plot_origin_dataset(axes)
+    plot_origin_dataset(axes, user_xaxis, user_yaxis)
     # Обір налаштувань
     if settings[0]:
         n_clusters = settings[0]
     if settings[1]:
         data_to_predict = settings[1]
     if settings[2]:
-        result = k_means_method(axes, data_to_predict)
+        result = k_means_method(axes, data_to_predict, user_xaxis, user_yaxis)
         app.print_clustering_output(result)
     if settings[3]:
-        tSNE_method(axes)
+        tSNE_method(axes, user_xaxis, user_yaxis)
     if settings[4]:
-        dbscan_method(axes)
+        dbscan_method(axes, user_xaxis, user_yaxis)
     # Друк результатів
     plt.show()
 
     plt.close()
     return
+#
