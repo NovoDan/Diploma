@@ -1,6 +1,6 @@
-import sys  # sys нужен для передачи argv в QApplication
+import sys  
 from PyQt5 import QtWidgets
-import ui.pydesign as design  # Это наш конвертированный файл дизайна
+import ui.pydesign as design
 from classifier import classifier
 from regression import regression
 from clustering import clustering
@@ -51,7 +51,7 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
             self.text_classifier_input_data.setPlainText(file.read())
 
     def get_classification_settings(self):
-        #separator
+        # Роздільник
         if self.rb_classifier_separator_coma.isChecked():
             separator = ','
         elif self.rb_classifier_separator_semicolon.isChecked():
@@ -59,7 +59,7 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         elif self.rb_classifier_separator_space.isChecked():
             separator = ' '
 
-        # missed values policy
+        # Заміна пропущених даних
         if self.rb_classifier_missed_ignore.isChecked():
             missed_values_policy = -1
         elif self.rb_classifier_missed_zeros.isChecked():
@@ -67,13 +67,13 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         elif self.rb_classifier_missed_calculate.isChecked():
             missed_values_policy = 1
 
-        # headers row
+        # Отримання заголовків
         if self.rb_classifier_headers_num.isChecked():
             headers = None
         else:
             headers = 0
 
-        # row indexes
+        # Отримання індексів рядків
         if self.rb_classifier_rowindex_num.isChecked():
             indexes = None
         elif self.rb_classifier_rowindex_firstcol.isChecked():
@@ -81,13 +81,13 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         else:
             indexes = -1
 
-        # Labels column
+        # Стопець міток
         if self.rb_classifier_labels_firstcol.isChecked():
             labels = 0
         else:
             labels = -1
 
-        # Part of data to predict
+        # Частина даних, яка буде використана для передбачення
         try:
             percent_to_predict = float(self.data_to_predict_percent_classifier.text())
         except:
@@ -124,7 +124,7 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
             return
 
     def get_regression_settings(self):
-        #separator
+        # Роздільник
         if self.rb_regression_separator_coma.isChecked():
             separator = ','
         elif self.rb_regression_separator_semicolon.isChecked():
@@ -132,7 +132,7 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         elif self.rb_regression_separator_space.isChecked():
             separator = ' '
 
-        # missed values policy
+        # Заміна пропущених даних
         if self.rb_regression_missed_ignore.isChecked():
             missed_values_policy = -1
         elif self.rb_regression_missed_zeros.isChecked():
@@ -140,13 +140,13 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         elif self.rb_regression_missed_calculate.isChecked():
             missed_values_policy = 1
 
-        # headers row
+        # Отримання заголовків
         if self.rb_regression_headers_num.isChecked():
             headers = None
         else:
             headers = 0
 
-        # row indexes
+        # Отримання індексів рядків
         if self.rb_regression_rowindex_num.isChecked():
             indexes = None
         elif self.rb_regression_rowindex_firstcol.isChecked():
@@ -154,19 +154,20 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         else:
             indexes = -1
 
-        # Labels column
+        # Стопець міток
         if self.rb_regression_labels_firstcol.isChecked():
             labels = 0
         else:
             labels = -1
 
-        # Part of data to predict
+        # Частина даних, яка буде використана для передбачення
         try:
             percent_to_predict = float(self.data_to_predict_percent_regression.text())
         except:
             self.print_logs('Помилка у даних, що введено.Буде використано занченя за змовченням 0,2')
             percent_to_predict = 0.2
 
+        # Номери стовпців, які буде використано для навчання та тестування
         try:
             target_columns = self.convert_string_to_float_list(self.target_column_line_regression.text())
         except:
@@ -226,11 +227,11 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
 
 
 def main():
-    app = QtWidgets.QApplication(sys.argv)  # Новый экземпляр QApplication
-    window = MachineLearningApp()  # Создаём объект класса ExampleApp
-    window.show()  # Показываем окно
-    app.exec_()  # и запускаем приложение
+    app = QtWidgets.QApplication(sys.argv)  # Новий екземпляр QApplication
+    window = MachineLearningApp()  # Створення об'єкту класу ExampleApp
+    window.show()  # Відображення вікна
+    app.exec_()  # запуск додатку
 
 
-if __name__ == '__main__':  # Если мы запускаем файл напрямую, а не импортируем
-    main()  # то запускаем функцию main()
+if __name__ == '__main__':  # Для запуску напряму (без імпорту у іншій програмі)
+    main()
