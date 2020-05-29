@@ -18,58 +18,44 @@ See the linked page for full details of the data set.
 This script uses three classifiers to predict the class of an email
 """
 
-# Uncomment this call when using matplotlib to generate images
-# rather than displaying interactive UI.
-# import matplotlib
-# matplotlib.use('Agg')
-
-from pandas import read_table
 import numpy as np
 import matplotlib.pyplot as plt
-
-# Import some classifiers to test
+from pandas import read_table
 from sklearn.svm import LinearSVC, NuSVC
 from sklearn.ensemble import AdaBoostClassifier
-
-# We will calculate the P-R curve for each classifier
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_recall_curve, f1_score
-
-try:
-    import seaborn
-except ImportError:
-    pass
+from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
 
 
 # =====================================================================
 
 
-def download_data(path):
+def download_data(path, separator, index_column, header_row):
     """
-    Downloads the data for this script into a pandas DataFrame.
+    Завантажує дані для скрипту у формат pandas DataFrame.
     """
 
     frame = read_table(
         path,
 
-        # Specify the file encoding
+        # Визначає кодування файлу
         encoding='utf-8',
 
-        # Specify the separator in the data
-        sep=',',
+        # Визначає роздільник даних
+        sep=separator,
 
-        # Ignore spaces after the separator
+        # Ігнорує пробіли після оздільника
         skipinitialspace=True,
 
-        # Generate row labels from each row number
-        index_col=None,
+        # Обрати індекси для рядків
+        index_col=index_column,
 
-        # Generate column headers row from each column number
-        header=None,
+        # Обрати заголовки стовпців
+        header=header_row
 
     )
-
-    # Return a subset of the columns
-    # return frame[['col1', 'col4', ...]]
 
     # Return the entire frame
     return frame
@@ -78,45 +64,43 @@ def download_data(path):
 # =====================================================================
 
 
-def get_features_and_labels(frame):
+def get_features_and_labels(frame, target_value_column, missed_value_policy, data_percent):
     """
-    Transforms and scales the input data and returns numpy arrays for
-    training and testing inputs and targets.
+    Перетворює та масштабує вхідні дані та повертає numpy масиви для
+     навчання та тестування вхідних даних та цільових значень (міток).
     """
 
-    # Convert values to floats
-    arr = np.array(frame, dtype=np.float)
+    arr = np.array(frame)
 
-    # Use the last column as the target value
-    X, y = arr[:, :-1], arr[:, -1]
-    # To use the first column instead, change the index value
-    # X, y = arr[:, 1:], arr[:, 0]
+    # Обрати стовпець з міками даних
+    if target_value_column == 1:
+        X, y = arr[:, 1:], arr[:, 0]
+    else:
+        X = arr[:, :-1]
+        y = arr[:, -1]
 
-    # Use 80% of the data for training; test against the rest
-    from sklearn.model_selection import train_test_split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+    # Пропущені значення можуть бути заміені нулями
+    if missed_value_policy == 0:
+        frame[frame.isnull()] = 0.0
 
-    # If values are missing we could impute them from the training data
-    from sklearn.impute import SimpleImputer
-    imputer = SimpleImputer(strategy='mean')
-    imputer.fit(X_train)
-    X_train = imputer.transform(X_train)
-    X_test = imputer.transform(X_test)
+    # Розділяє дані на тренувальні та тестові
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=data_percent)
 
-    # Normalize the attribute values to mean=0 and variance=1
-    from sklearn.preprocessing import StandardScaler
+    # Пропущені занчення можуть бути замінені даними з набору
+    if missed_value_policy == 1:
+        imputer = SimpleImputer(strategy='mean')
+        imputer.fit(X_train)
+        X_train = imputer.transform(X_train)
+        X_test = imputer.transform(X_test)
+
+    # Нормалізування значення атрибутів для значення = 0 і дисперсії = 1
     scaler = StandardScaler()
-    # To scale to a specified range, use MinMaxScaler
-    # from sklearn.preprocessing import MinMaxScaler
-    # scaler = MinMaxScaler(feature_range=(0, 1))
 
-    # Fit the scaler based on the training data, then apply the same
-    # scaling to both training and test sets.
+    # Налаштування масштабування з тренувальних даних
     scaler.fit(X_train)
     X_train = scaler.transform(X_train)
     X_test = scaler.transform(X_test)
 
-    # Return the training and test sets
     return X_train, X_test, y_train, y_test
 
 
@@ -125,49 +109,49 @@ def get_features_and_labels(frame):
 
 def evaluate_classifier(X_train, X_test, y_train, y_test):
     """
-    Run multiple times with different classifiers to get an idea of the
-    relative performance of each configuration.
+    Запускається декілька разів з різними клисифікаторами, щоб отримати уявлення про
+     відносна продуктивність кожної конфігурації.
 
-    Returns a sequence of tuples containing:
-        (title, precision, recall)
-    for each learner.
+     Повертає послідовність кортежів, що містять:
+         (назва, точність, повнота, колір графіку)
+     для кожного з алгоритмів що навчаються.
     """
 
-    # Here we create classifiers with default parameters. These need
-    # to be adjusted to obtain optimal performance on your data set.
-
-    # Test the linear support vector classifier
-    classifier = LinearSVC(C=1)
-    # Fit the classifier
-    classifier.fit(X_train, y_train)
-    score = f1_score(y_test, classifier.predict(X_test))
-    # Generate the P-R curve
-    y_prob = classifier.decision_function(X_test)
-    precision, recall, _ = precision_recall_curve(y_test, y_prob)
-    # Include the score in the title
-    yield 'Linear SVC (F1 score={:.3f})'.format(score), precision, recall
+    # Створюється крласифікатор з параметрами за змовчуванням.
+    # Вони повинні бути відрегульовані для отримання оптимальної продуктивності набору даних.
 
     # Test the Nu support vector classifier
     classifier = NuSVC(kernel='rbf', nu=0.5, gamma=1e-3)
-    # Fit the classifier
+    # Навчання класифікатора
     classifier.fit(X_train, y_train)
+    # Розрахування середньозваженого 'точність-повнота'
     score = f1_score(y_test, classifier.predict(X_test))
-    # Generate the P-R curve
+    # Генерування кривої повнота-точність
     y_prob = classifier.decision_function(X_test)
     precision, recall, _ = precision_recall_curve(y_test, y_prob)
-    # Include the score in the title
-    yield 'NuSVC (F1 score={:.3f})'.format(score), precision, recall
+    yield 'Метод опорних векторів (SVC) (якість={:.3f})'.format(score), precision, recall, 'yellow'
+
+    # Тестування метода опроних векторів
+    classifier = LinearSVC(C=1)
+    # Навчання класифікатора
+    classifier.fit(X_train, y_train)
+    # Розрахування середньозваженого 'точність-повнота'
+    score = f1_score(y_test, classifier.predict(X_test))
+    # Генерування кривої повнота-точність
+    y_prob = classifier.decision_function(X_test)
+    precision, recall, _ = precision_recall_curve(y_test, y_prob)
+    yield 'Лінійний метод опорних векторів (LinearSVC) (якість={:.3f})'.format(score), precision, recall, 'red'
 
     # Test the Ada boost classifier
     classifier = AdaBoostClassifier(n_estimators=50, learning_rate=1.0, algorithm='SAMME.R')
-    # Fit the classifier
+    # Навчання класифікатора
     classifier.fit(X_train, y_train)
+    # Розрахування середньозваженого 'точність-повнота'
     score = f1_score(y_test, classifier.predict(X_test))
-    # Generate the P-R curve
+    # Генерування кривої повнота-точність
     y_prob = classifier.decision_function(X_test)
     precision, recall, _ = precision_recall_curve(y_test, y_prob)
-    # Include the score in the title
-    yield 'Ada Boost (F1 score={:.3f})'.format(score), precision, recall
+    yield 'Ada Boost (якість={:.3f})'.format(score), precision, recall, 'black'
 
 
 # =====================================================================
@@ -175,53 +159,64 @@ def evaluate_classifier(X_train, X_test, y_train, y_test):
 
 def plot(results, URL):
     """
-    Create a plot comparing multiple learners.
+    Створює графіки для порівняння кількох алгоритмів.
 
-    `results` is a list of tuples containing:
-        (title, precision, recall)
+     `Результати` - це список кортежів, що містять:
+         (назва, точність, повнота)
 
-    All the elements in results will be plotted.
     """
 
-    # Plot the precision-recall curves
+    # Друк кривих 'точність-повнота'
 
     fig = plt.figure(figsize=(6, 6))
-    fig.canvas.set_window_title('Classifying data from ' + URL)
+    fig.canvas.set_window_title('Класифікація даних з ' + URL)
 
-    for label, precision, recall in results:
-        plt.plot(recall, precision, label=label)
+    for label, precision, recall, color in results:
+        plt.plot(recall, precision, label=label, color=color)
 
-    plt.title('Precision-Recall Curves')
-    plt.xlabel('Precision')
-    plt.ylabel('Recall')
+    # Встановити назви графіку, осей та розташування легенди
+    plt.title('Криві Точність-Повнота')
+    plt.xlabel('Точність')
+    plt.ylabel('Повнота')
     plt.legend(loc='lower left')
 
-    # Let matplotlib improve the layout
+    # Дати matplotlib покращити макет
     plt.tight_layout()
 
     # ==================================
-    # Display the plot in interactive UI
+    # Відобразити графіки
     plt.show()
 
-    # Closing the figure allows matplotlib to release the memory used.
+    # Звільнити пам'ять після закриття графіків
     plt.close()
 
 
 # =====================================================================
 
-def analyze(app, path):
+def analyze(app, path, settings):
+    #Вилучення налаштувань з кортежу
+    separator = settings[0]
+    index_column = settings[1]
+    header_row = settings[2]
+    target_value_column = settings[3]
+    missed_value_policy = settings[4]
+    data_percent = settings[5]
+
     app.print_logs("Завантаження даних з {}...".format(path))
-    frame = download_data(path)
+    try:
+        frame = download_data(path, separator, index_column, header_row)
+    except:
+        app.print_logs('Помилка! Некорректні віхідні дані або налаштування!')
+        return
 
-    # Process data into feature and label arrays
+    # Обробка даних у масиви властивостей да міток
     app.print_logs("Обробка {} зразків з {} атрибутами...".format(len(frame.index), len(frame.columns)))
-    X_train, X_test, y_train, y_test = get_features_and_labels(frame)
+    X_train, X_test, y_train, y_test = get_features_and_labels(frame, target_value_column, missed_value_policy, data_percent)
 
-    # Evaluate multiple classifiers on the data
+    # Оцінка класифікаторів на тренувальних та тестових даних
     app.print_logs("Оцінювання класифікаторів...")
     results = list(evaluate_classifier(X_train, X_test, y_train, y_test))
 
-    # Display the results
+    # Відобразити результати
     app.print_logs("Друк результатів...")
     plot(results, path)
-

@@ -15,16 +15,13 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         super().__init__()
         self.setupUi(self)  # Ініціалізація дизайну
         # Пошук файлів
-        self.btn_browse_classification.clicked.connect(
-            self.browse_file_classifier)  # Прив'язати функцію browse_file до кнопки
+        self.btn_browse_classification.clicked.connect(self.browse_file_classifier)  # Прив'язати функцію browse_file до кнопки
         self.btn_browse_regression.clicked.connect(self.browse_file_regression)
-        # self.btn_browse_clustering.clicked.connect(self.browse_file_clustering)
         # Завантаення даних
         self.btn_download_classifier_data.clicked.connect(self.process_classifier_data)
         self.btn_download_regression_data.clicked.connect(self.process_regression_data)
         self.btn_start_clustering.clicked.connect(self.start_clustering)
         self.checkBox_kmeans.clicked.connect(self.enable_kmeans_settings)
-        # self.btn_download_clustering_data.clicked.connect(self.process_clustering_data)
 
     # Класифікація ======================================================
 
@@ -36,14 +33,15 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         # директорії i всстановити шлях до файлу як значення змінної
         if file_path:
             self.classifier_filepath_field.setText(file_path)
+            self.print_classifier_input(file_path)
         else:
             return
 
     def process_classifier_data(self):
         if not self.classifier_filepath_field.text() == "":
             path = self.classifier_filepath_field.text()
-            self.print_classifier_input(path)
-            classifier.analyze(self, path)
+            settings = self.get_classification_settings()
+            classifier.analyze(self, path, settings)
         else:
             self.print_logs('Файл не обрано!')
             return
@@ -51,6 +49,52 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
     def print_classifier_input(self, path):
         with open(path, 'r', encoding='utf8') as file:
             self.text_classifier_input_data.setPlainText(file.read())
+
+    def get_classification_settings(self):
+        #separator
+        if self.rb_classifier_separator_coma.isChecked():
+            separator = ','
+        elif self.rb_classifier_separator_semicolon.isChecked():
+            separator = ';'
+        elif self.rb_classifier_separator_space.isChecked():
+            separator = ' '
+
+        # missed values policy
+        if self.rb_classifier_missed_ignore.isChecked():
+            missed_values_policy = -1
+        elif self.rb_classifier_missed_zeros.isChecked():
+            missed_values_policy = 0
+        elif self.rb_classifier_missed_calculate.isChecked():
+            missed_values_policy = 1
+
+        # headers row
+        if self.rb_classifier_headers_num.isChecked():
+            headers = None
+        else:
+            headers = 0
+
+        # row indexes
+        if self.rb_classifier_rowindex_num.isChecked():
+            indexes = None
+        elif self.rb_classifier_rowindex_firstcol.isChecked():
+            indexes = 0
+        else:
+            indexes = -1
+
+        # Labels column
+        if self.rb_classifier_labels_firstcol.isChecked():
+            labels = 0
+        else:
+            labels = -1
+
+        # Part of data to predict
+        try:
+            percent_to_predict = float(self.data_to_predict_percent_classifier.text())
+        except:
+            self.print_logs('Помилка у даних, що введено.Буде використано занченя за змовченням 0,2x')
+            percent_to_predict = 0.2
+
+        return separator, indexes, headers, labels, missed_values_policy, percent_to_predict
 
     # Регресія =========================================================
 
@@ -62,21 +106,74 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         if file_path:
             self.regression_filepath_field.clear()  # На випадок, якщо у полі вже є дані
             self.regression_filepath_field.setText(file_path)
+            self.print_regression_input(file_path)
         else:
-            return
-
-    def process_regression_data(self):
-        if not self.regression_filepath_field.text() == "":
-            path = self.regression_filepath_field.text()
-            self.print_regression_input(path)
-            regression.analyze(self, path)
-        else:
-            self.print_logs('Файл не обрано!')
             return
 
     def print_regression_input(self, path):
         with open(path, 'r', encoding='utf8') as file:
             self.text_regression_input_data.setPlainText(file.read())
+
+    def process_regression_data(self):
+        if not self.regression_filepath_field.text() == "":
+            path = self.regression_filepath_field.text()
+            settings = self.get_regression_settings()
+            regression.analyze(self, path, settings)
+        else:
+            self.print_logs('Файл не обрано!')
+            return
+
+    def get_regression_settings(self):
+        #separator
+        if self.rb_regression_separator_coma.isChecked():
+            separator = ','
+        elif self.rb_regression_separator_semicolon.isChecked():
+            separator = ';'
+        elif self.rb_regression_separator_space.isChecked():
+            separator = ' '
+
+        # missed values policy
+        if self.rb_regression_missed_ignore.isChecked():
+            missed_values_policy = -1
+        elif self.rb_regression_missed_zeros.isChecked():
+            missed_values_policy = 0
+        elif self.rb_regression_missed_calculate.isChecked():
+            missed_values_policy = 1
+
+        # headers row
+        if self.rb_regression_headers_num.isChecked():
+            headers = None
+        else:
+            headers = 0
+
+        # row indexes
+        if self.rb_regression_rowindex_num.isChecked():
+            indexes = None
+        elif self.rb_regression_rowindex_firstcol.isChecked():
+            indexes = 0
+        else:
+            indexes = -1
+
+        # Labels column
+        if self.rb_regression_labels_firstcol.isChecked():
+            labels = 0
+        else:
+            labels = -1
+
+        # Part of data to predict
+        try:
+            percent_to_predict = float(self.data_to_predict_percent_regression.text())
+        except:
+            self.print_logs('Помилка у даних, що введено.Буде використано занченя за змовченням 0,2')
+            percent_to_predict = 0.2
+
+        try:
+            target_columns = self.convert_string_to_float_list(self.target_column_line_regression.text())
+        except:
+            self.print_logs('Помилка у даних, що введено.Буде використано занченя за змовченням [156, 157, 158, 155]')
+            target_columns = [156, 157, 158, 155]
+
+        return separator, indexes, headers, labels, missed_values_policy, percent_to_predict, target_columns
 
     # Кластеризація =====================================================
 
