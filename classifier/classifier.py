@@ -27,6 +27,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_recall_curve, f1_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
+from sklearn.neighbors import KNeighborsClassifier
 
 
 # =====================================================================
@@ -129,7 +130,7 @@ def evaluate_classifier(X_train, X_test, y_train, y_test):
     # Генерування кривої повнота-точність
     y_prob = classifier.decision_function(X_test)
     precision, recall, _ = precision_recall_curve(y_test, y_prob)
-    yield 'Метод опорних векторів (SVC) (якість={:.3f})'.format(score), precision, recall, 'yellow'
+    yield 'RBF модель (якість={:.3f})'.format(score), precision, recall, 'yellow'
 
     # Тестування метода опроних векторів
     classifier = LinearSVC(C=1)
@@ -144,6 +145,7 @@ def evaluate_classifier(X_train, X_test, y_train, y_test):
 
     # Test the Ada boost classifier
     classifier = AdaBoostClassifier(n_estimators=50, learning_rate=1.0, algorithm='SAMME.R')
+
     # Навчання класифікатора
     classifier.fit(X_train, y_train)
     # Розрахування середньозваженого 'точність-повнота'
@@ -152,6 +154,14 @@ def evaluate_classifier(X_train, X_test, y_train, y_test):
     y_prob = classifier.decision_function(X_test)
     precision, recall, _ = precision_recall_curve(y_test, y_prob)
     yield 'Ada Boost (якість={:.3f})'.format(score), precision, recall, 'black'
+
+    classifier = KNeighborsClassifier(n_neighbors=5)
+
+    classifier.fit(X_train, y_train)
+    score = f1_score(y_test, classifier.predict(X_test))
+    y_prob = classifier.decision_function(X_test)
+    precision, recall, _ = precision_recall_curve(y_test, y_prob)
+    yield 'K nearest (якість={:.3f})'.format(score), precision, recall, 'blue'
 
 
 # =====================================================================

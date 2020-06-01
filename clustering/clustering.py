@@ -10,6 +10,9 @@ iris_df = datasets.load_iris()
 
 
 def plot_origin_dataset(axes, user_xaxis, user_yaxis):
+    """
+    Друкує початкові дані та готує графік розподілу цих даних
+    """
 
     # Розділення набору даних на осі
     x_axis = iris_df.data[:, user_xaxis]
@@ -21,6 +24,10 @@ def plot_origin_dataset(axes, user_xaxis, user_yaxis):
 
 
 def k_means_method(axes, data_to_predict, user_xaxis, user_yaxis):
+    """
+    Навчання за методом к-середніх та підготовка результатів для друку на виводу графіку
+    """
+
     predicted_label_result = ''
     # Опис моделі
     model = KMeans(n_clusters=3)
@@ -53,6 +60,9 @@ def k_means_method(axes, data_to_predict, user_xaxis, user_yaxis):
 
 
 def tSNE_method(axes, user_xaxis, user_yaxis):
+    """
+    Навчання за методом t-SNE та підготовка результатів для друку на виводу графіку
+    """
     # Визначення моделі на швидкості навчання
     model = TSNE(learning_rate=100)
 
@@ -68,6 +78,9 @@ def tSNE_method(axes, user_xaxis, user_yaxis):
 
 
 def dbscan_method(axes, user_xaxis, user_yaxis):
+    """
+        Навчання за методом DBSCAN та підготовка результатів для друку на виводу графіку
+    """
     # Визначення моделі
     dbscan = DBSCAN()
 
@@ -128,4 +141,3 @@ def start(app, settings):
 
     plt.close()
     return
-#
