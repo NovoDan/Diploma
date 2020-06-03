@@ -23,14 +23,14 @@ def plot_origin_dataset(axes, user_xaxis, user_yaxis):
     axes[0][0].set_xlabel('Початкові дані')
 
 
-def k_means_method(axes, data_to_predict, user_xaxis, user_yaxis):
+def k_means_method(axes, clusters, data_to_predict, user_xaxis, user_yaxis):
     """
     Навчання за методом к-середніх та підготовка результатів для друку на виводу графіку
     """
 
     predicted_label_result = ''
     # Опис моделі
-    model = KMeans(n_clusters=3)
+    model = KMeans(n_clusters=clusters)
 
     # Моделювання
     model.fit(iris_df.data)
@@ -44,7 +44,7 @@ def k_means_method(axes, data_to_predict, user_xaxis, user_yaxis):
     all_predictions = model.predict(iris_df.data)
 
     # Отримання результатів передбачення
-    all_predictions_result = 'Передбачені міткі (Метод К-ередніх):\n {}'.format(model.predict(iris_df.data))
+    all_predictions_result = 'Передбачені міткі (Метод К-cередніх):\n {}'.format(all_predictions)
 
     # Розділення набору даних
     x_axis = iris_df.data[:, user_xaxis]
@@ -59,30 +59,38 @@ def k_means_method(axes, data_to_predict, user_xaxis, user_yaxis):
     return result
 
 
-def tSNE_method(axes, user_xaxis, user_yaxis):
+def tSNE_method(axes, user_xaxis, user_yaxis, clusters):
     """
     Навчання за методом t-SNE та підготовка результатів для друку на виводу графіку
     """
-    # Визначення моделі на швидкості навчання
-    model = TSNE(learning_rate=100)
+    # Визначення моделі та швидкості навчання
+    model = TSNE()
 
     # навчання моделі
     transformed = model.fit_transform(iris_df.data)
 
-    # Трансформування результату у двовимірний
+    model = KMeans(n_clusters=clusters)
+    model.fit(transformed)
+
+    # Передбачення на всьому наборі даних
+    all_predictions = model.predict(transformed)
+
+    # Розділення набору даних
     x_axis = transformed[:, user_xaxis]
     y_axis = transformed[:, user_yaxis]
 
-    axes[1][0].scatter(x_axis, y_axis, c=iris_df.target)
-    axes[1][0].set_xlabel('Метод t-SNE')
+    axes[1][0].scatter(x_axis, y_axis, c=all_predictions)
+    axes[1][0].set_xlabel('Метод К-середніх з t-SNE')
+
+    return 'Передбачені міткі (Метод К-cередніх з t-SNE):\n {}'.format(all_predictions)
 
 
-def dbscan_method(axes, user_xaxis, user_yaxis):
+def dbscan_method(axes, epsilon, samples):
     """
         Навчання за методом DBSCAN та підготовка результатів для друку на виводу графіку
     """
     # Визначення моделі
-    dbscan = DBSCAN()
+    dbscan = DBSCAN(eps=epsilon, min_samples=samples)
 
     # Навчання моделі
     dbscan.fit(iris_df.data)
@@ -91,23 +99,29 @@ def dbscan_method(axes, user_xaxis, user_yaxis):
     pca = PCA(n_components=2).fit(iris_df.data)
     pca_2d = pca.transform(iris_df.data)
 
-    # Побудова результатів у відповідності до трьох класів
+    # Побудова результатів з виділенням шумів
+    noise = None
+    axes[1][1].scatter(pca_2d[:, 0], pca_2d[:, 1], c=dbscan.labels_)
     for i in range(0, pca_2d.shape[0]):
-        if dbscan.labels_[i] == 0:
-            c1 = axes[1][1].scatter(pca_2d[i, user_xaxis], pca_2d[i, user_yaxis], c='r', marker='+')
-        elif dbscan.labels_[i] == 1:
-            c2 = axes[1][1].scatter(pca_2d[i, user_xaxis], pca_2d[i, user_yaxis], c='g', marker='o')
-        elif dbscan.labels_[i] == -1:
-            c3 = axes[1][1].scatter(pca_2d[i, user_xaxis], pca_2d[i, user_yaxis], c='b', marker='*')
+        if dbscan.labels_[i] == -1:
+            noise = axes[1][1].scatter(pca_2d[i, 0], pca_2d[i, 1], c='r')
 
-    axes[1][1].legend([c1, c2, c3], ['Кластер 1', 'Кластер 2', 'Шум'])
-    axes[1][1].set_xlabel('Метод t-SNE')
+    if noise:
+        axes[1][1].legend([noise], ['Шум'])
+    axes[1][1].set_xlabel('Метод DBSCAN')
+
+    return 'Передбачені міткі (Метод DBSCAN):\n {}'.format(dbscan.labels_)
 
 
 def start(app, settings):
+    result = ''
+
+    n_clusters = 3
     data_to_predict = None
     user_xaxis = 0
     user_yaxis = 1
+    epsilon = 0.5
+    samples = 5
 
     if settings[5]:
         user_axes = settings[5]
@@ -129,14 +143,18 @@ def start(app, settings):
         n_clusters = settings[0]
     if settings[1]:
         data_to_predict = settings[1]
+    if settings[6]:
+        epsilon = settings[6]
+    if settings[7]:
+        samples = settings[7]
     if settings[2]:
-        result = k_means_method(axes, data_to_predict, user_xaxis, user_yaxis)
-        app.print_clustering_output(result)
+        result += '\n' + k_means_method(axes, n_clusters, data_to_predict, user_xaxis, user_yaxis)
     if settings[3]:
-        tSNE_method(axes, user_xaxis, user_yaxis)
+        result += '\n' + tSNE_method(axes, user_xaxis, user_yaxis, n_clusters)
     if settings[4]:
-        dbscan_method(axes, user_xaxis, user_yaxis)
+        result += '\n' + dbscan_method(axes, epsilon, samples)
     # Друк результатів
+    app.print_clustering_output(result)
     plt.show()
 
     plt.close()

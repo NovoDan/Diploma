@@ -30,6 +30,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pandas import read_table
 from sklearn.impute import SimpleImputer
+from sklearn.metrics import f1_score
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
 from sklearn.model_selection import train_test_split
@@ -123,26 +125,26 @@ def evaluate_learner(X_train, X_test, y_train, y_test):
      для кожного учня.
     """
 
-    # Тренування з використанням ядерної моделі
-    svr = SVR(kernel='rbf', gamma=0.1)
-    svr.fit(X_train, y_train)
-    y_pred = svr.predict(X_test)
-    r_2 = svr.score(X_test, y_test)
-    yield 'RBF модель ($R^2={:.3f}$)'.format(r_2), y_test, y_pred
-
     # Тренування методом линійних опорних векторів T
     svr = SVR(kernel='linear')
     svr.fit(X_train, y_train)
     y_pred = svr.predict(X_test)
     r_2 = svr.score(X_test, y_test)
-    yield 'Лінійна модель ($R^2={:.3f}$)'.format(r_2), y_test, y_pred
+    yield 'Лінійна модель ($Якість={:.3f}$)'.format(r_2), y_test, y_pred
 
     # Тренування поліноміальної моделі
-    svr = SVR(kernel='poly', degree=2)
+    svr = SVR(kernel='poly')
     svr.fit(X_train, y_train)
     y_pred = svr.predict(X_test)
     r_2 = svr.score(X_test, y_test)
-    yield 'Поліноміальна модель ($R^2={:.3f}$)'.format(r_2), y_test, y_pred
+    yield 'Поліноміальна модель ($Якість={:.3f}$)'.format(r_2), y_test, y_pred
+
+    # Тренування з використанням ядерної моделі
+    svr = SVR(kernel='rbf')
+    svr.fit(X_train, y_train)
+    y_pred = svr.predict(X_test)
+    r_2 = svr.score(X_test, y_test)
+    yield 'RBF модель ($Якість={:.3f}$)'.format(r_2), y_test, y_pred
 
 
 # =====================================================================

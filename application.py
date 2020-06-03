@@ -23,6 +23,7 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         self.btn_download_regression_data.clicked.connect(self.process_regression_data)
         self.btn_start_clustering.clicked.connect(self.start_clustering)
         self.checkBox_kmeans.clicked.connect(self.enable_kmeans_settings)
+        self.checkBox_dbscan.clicked.connect(self.enable_dbscan_settings)
 
     # Класифікація ======================================================
 
@@ -98,7 +99,17 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
             self.print_logs('Помилка у даних, що введено.Буде використано занченя за змовченням 0,2x')
             percent_to_predict = 0.2
 
-        return separator, indexes, headers, labels, missed_values_policy, percent_to_predict
+        try:
+            neighbors = int(self.heigbors_line.text())
+        except:
+            self.print_logs('Помилка у даних, що введено.Буде використано занченя за змовченням 0,2x')
+            neighbors = 5
+
+        return separator, indexes, headers, labels, missed_values_policy, percent_to_predict, neighbors
+
+    # Друк результатів
+    def print_classification_output(self, output_data):
+        self.text_classifier_output_data.setPlainText(str(output_data))
 
     # Регресія =========================================================
 
@@ -175,10 +186,9 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
             percent_to_predict = 0.2
 
         # Номери стовпців, які буде використано для навчання та тестування
-        try:
+        if not self.target_columns_line_regression.text() =='':
             target_columns = self.convert_string_to_int_list(self.target_columns_line_regression.text(), 4)
-        except:
-            self.print_logs('Помилка у даних, що введено.Буде використано занченя за змовченням [156, 157, 158, 155]')
+        else:
             target_columns = [156, 157, 158, 155]
 
         return separator, indexes, headers, labels, missed_values_policy, percent_to_predict, target_columns
@@ -189,6 +199,8 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         # Початкова ініціалізація змінних
         n_clusters = None
         data = None
+        epsilon = None
+        minpts = None
         # Отримання обраних чекбоксів
         kmeans = self.checkBox_kmeans.isChecked()
         tsne = self.checkBox_tsne.isChecked()
@@ -209,7 +221,12 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
             self.print_logs('Помилка при зчитуванні даних. Буде використано значення за змовченням [0, 1]')
             axes = [0, 1]
 
-        return n_clusters, data, kmeans, tsne, dbscan, axes
+        if not self.dbscan_eps.text() == '':
+            epsilon = float(self.dbscan_eps.text())
+        if not self.dbscan_minpts.text() == '':
+            minpts = float(self.dbscan_minpts.text())
+
+        return n_clusters, data, kmeans, tsne, dbscan, axes, epsilon, minpts
 
     # Обробка даних
     def start_clustering(self):
@@ -233,7 +250,14 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         else:
             self.clusters.setDisabled(True)
             self.data_to_predict.setDisabled(True)
-        # return
+
+    def enable_dbscan_settings(self):
+        if self.checkBox_dbscan.isChecked():
+            self.dbscan_eps.setDisabled(False)
+            self.dbscan_minpts.setDisabled(False)
+        else:
+            self.dbscan_eps.setDisabled(True)
+            self.dbscan_minpts.setDisabled(True)
 
     # Друк логів
     def print_logs(self, message):
@@ -250,7 +274,7 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
             return list(map(float, string_numbers_list))
 
     # Конвертування рядка у список типу int заданого розміру
-    def convert_string_to__list(self, string_numbers, amount):
+    def convert_string_to_int_list(self, string_numbers, amount):
         string_numbers_list = string_numbers.split()
         if not len(string_numbers_list) == amount:
             self.print_logs('Wrong data!')

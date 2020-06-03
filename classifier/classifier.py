@@ -21,8 +21,7 @@ This script uses three classifiers to predict the class of an email
 import numpy as np
 import matplotlib.pyplot as plt
 from pandas import read_table
-from sklearn.svm import LinearSVC, NuSVC
-from sklearn.ensemble import AdaBoostClassifier
+from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_recall_curve, f1_score
 from sklearn.preprocessing import StandardScaler
@@ -30,7 +29,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.neighbors import KNeighborsClassifier
 
 
-# =====================================================================
+result=''
 
 
 def download_data(path, separator, index_column, header_row):
@@ -62,9 +61,6 @@ def download_data(path, separator, index_column, header_row):
     return frame
 
 
-# =====================================================================
-
-
 def get_features_and_labels(frame, target_value_column, missed_value_policy, data_percent):
     """
     Перетворює та масштабує вхідні дані та повертає numpy масиви для
@@ -87,6 +83,8 @@ def get_features_and_labels(frame, target_value_column, missed_value_policy, dat
     # Розділяє дані на тренувальні та тестові
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=data_percent)
 
+    original_data = '\nПочаткові мітки: \n{}'.format(y_test)
+
     # Пропущені занчення можуть бути замінені даними з набору
     if missed_value_policy == 1:
         imputer = SimpleImputer(strategy='mean')
@@ -105,66 +103,53 @@ def get_features_and_labels(frame, target_value_column, missed_value_policy, dat
     return X_train, X_test, y_train, y_test
 
 
-# =====================================================================
-
-
-def evaluate_classifier(X_train, X_test, y_train, y_test):
+def evaluate_classifier(X_train, X_test, y_train, y_test, neighbors):
     """
-    Запускається декілька разів з різними клисифікаторами, щоб отримати уявлення про
+    Запускається декілька разів з різними класифікаторами, щоб отримати уявлення про
      відносна продуктивність кожної конфігурації.
 
      Повертає послідовність кортежів, що містять:
          (назва, точність, повнота, колір графіку)
      для кожного з алгоритмів що навчаються.
     """
-
-    # Створюється крласифікатор з параметрами за змовчуванням.
-    # Вони повинні бути відрегульовані для отримання оптимальної продуктивності набору даних.
-
-    # Test the Nu support vector classifier
-    classifier = NuSVC(kernel='rbf', nu=0.5, gamma=1e-3)
-    # Навчання класифікатора
-    classifier.fit(X_train, y_train)
-    # Розрахування середньозваженого 'точність-повнота'
-    score = f1_score(y_test, classifier.predict(X_test))
-    # Генерування кривої повнота-точність
-    y_prob = classifier.decision_function(X_test)
-    precision, recall, _ = precision_recall_curve(y_test, y_prob)
-    yield 'RBF модель (якість={:.3f})'.format(score), precision, recall, 'yellow'
+    global result
 
     # Тестування метода опроних векторів
-    classifier = LinearSVC(C=1)
+    classifier = SVC(kernel='linear')
     # Навчання класифікатора
     classifier.fit(X_train, y_train)
+    result += '\nПередбачені мітки (Лінійний метод): \n{}'.format(classifier.predict(X_test))
     # Розрахування середньозваженого 'точність-повнота'
     score = f1_score(y_test, classifier.predict(X_test))
     # Генерування кривої повнота-точність
     y_prob = classifier.decision_function(X_test)
     precision, recall, _ = precision_recall_curve(y_test, y_prob)
-    yield 'Лінійний метод опорних векторів (LinearSVC) (якість={:.3f})'.format(score), precision, recall, 'red'
+    yield 'Лінійний метод опорних векторів (F1 метрика={:.3f})'.format(score), precision, recall, 'red'
 
-    # Test the Ada boost classifier
-    classifier = AdaBoostClassifier(n_estimators=50, learning_rate=1.0, algorithm='SAMME.R')
-
+    # Тестування RBF моделі
+    classifier = SVC(kernel='rbf')
     # Навчання класифікатора
     classifier.fit(X_train, y_train)
+    result += '\nПередбачені мітки (RBF метод): \n{}'.format(classifier.predict(X_test))
     # Розрахування середньозваженого 'точність-повнота'
     score = f1_score(y_test, classifier.predict(X_test))
     # Генерування кривої повнота-точність
     y_prob = classifier.decision_function(X_test)
     precision, recall, _ = precision_recall_curve(y_test, y_prob)
-    yield 'Ada Boost (якість={:.3f})'.format(score), precision, recall, 'black'
+    yield 'RBF модель (F1 метрика={:.3f})'.format(score), precision, recall, 'yellow'
 
-    classifier = KNeighborsClassifier(n_neighbors=5)
-
+    # Тестування методу k найближчих сусідів
+    classifier = KNeighborsClassifier(n_neighbors=neighbors)
+    # Навчання класифікатора
     classifier.fit(X_train, y_train)
+    result += '\nПередбачені мітки (Метод k-найближчих): \n{}'.format(classifier.predict(X_test))
+    # Розрахування середньозваженого 'точність-повнота'
     score = f1_score(y_test, classifier.predict(X_test))
-    y_prob = classifier.decision_function(X_test)
+    # Генерування кривої повнота-точність
+    y_prob = classifier.predict_proba(X_test)
+    y_prob = y_prob[:, 1]
     precision, recall, _ = precision_recall_curve(y_test, y_prob)
-    yield 'K nearest (якість={:.3f})'.format(score), precision, recall, 'blue'
-
-
-# =====================================================================
+    yield 'K найближчих сусідів (F1 метрика={:.3f})'.format(score), precision, recall, 'black'
 
 
 def plot(results, URL):
@@ -193,15 +178,12 @@ def plot(results, URL):
     # Дати matplotlib покращити макет
     plt.tight_layout()
 
-    # ==================================
     # Відобразити графіки
     plt.show()
 
     # Звільнити пам'ять після закриття графіків
     plt.close()
 
-
-# =====================================================================
 
 def analyze(app, path, settings):
     #Вилучення налаштувань з кортежу
@@ -211,6 +193,7 @@ def analyze(app, path, settings):
     target_value_column = settings[3]
     missed_value_policy = settings[4]
     data_percent = settings[5]
+    neighbors = settings[6]
 
     app.print_logs("Завантаження даних з {}...".format(path))
     try:
@@ -225,8 +208,11 @@ def analyze(app, path, settings):
 
     # Оцінка класифікаторів на тренувальних та тестових даних
     app.print_logs("Оцінювання класифікаторів...")
-    results = list(evaluate_classifier(X_train, X_test, y_train, y_test))
+    results = list(evaluate_classifier(X_train, X_test, y_train, y_test, neighbors))
 
     # Відобразити результати
     app.print_logs("Друк результатів...")
+    origin_labels = '\nПочаткові мітки: \n{}'.format(y_test)
+
+    app.print_classification_output(origin_labels + result)
     plot(results, path)
