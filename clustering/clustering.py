@@ -38,7 +38,7 @@ def k_means_method(axes, clusters, data_to_predict, user_xaxis, user_yaxis):
     # Передбачення на одничному прикладі
     if data_to_predict:
         predicted_label = model.predict([data_to_predict])
-        predicted_label_result = "Predicted: {}".format(predicted_label)
+        predicted_label_result = "Передбачена мітка даних: {}\n".format(predicted_label)
 
     # Передбачення на всьому наборі даних
     all_predictions = model.predict(iris_df.data)
@@ -80,9 +80,9 @@ def tSNE_method(axes, user_xaxis, user_yaxis, clusters):
     y_axis = transformed[:, user_yaxis]
 
     axes[1][0].scatter(x_axis, y_axis, c=all_predictions)
-    axes[1][0].set_xlabel('Метод К-середніх з t-SNE')
+    axes[1][0].set_xlabel('Метод К-середніх зі зменш. розм.')
 
-    return 'Передбачені міткі (Метод К-cередніх з t-SNE):\n {}'.format(all_predictions)
+    return 'Передбачені міткі (Метод К-cередніх зі зменш. розм.):\n {}'.format(all_predictions)
 
 
 def dbscan_method(axes, epsilon, samples):

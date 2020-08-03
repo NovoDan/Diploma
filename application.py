@@ -54,6 +54,10 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         with open(path, 'r', encoding='utf8') as file:
             self.text_classifier_input_data.setPlainText(file.read())
 
+    def add_classifier_input(self, text):
+        prev_data = self.text_classifier_input_data.insertPlainText(text)
+        # self.text_classifier_input_data.print(text)
+
     # Отримання налаштувань
     def get_classification_settings(self):
         # Роздільник
@@ -179,10 +183,9 @@ class MachineLearningApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
             labels = -1
 
         # Частина даних, яка буде використана для передбачення
-        try:
+        if not self.data_to_predict_percent_regression.text() == '':
             percent_to_predict = float(self.data_to_predict_percent_regression.text())
-        except:
-            self.print_logs('Помилка у даних, що введено.Буде використано занченя за змовченням 0,2')
+        else:
             percent_to_predict = 0.2
 
         # Номери стовпців, які буде використано для навчання та тестування

@@ -295,7 +295,7 @@ class Ui_MainWindow(object):
         self.checkBox_kmeans.setGeometry(QtCore.QRect(20, 20, 131, 17))
         self.checkBox_kmeans.setObjectName("checkBox_kmeans")
         self.checkBox_tsne = QtWidgets.QCheckBox(self.gb_clustering_settings)
-        self.checkBox_tsne.setGeometry(QtCore.QRect(20, 50, 101, 17))
+        self.checkBox_tsne.setGeometry(QtCore.QRect(20, 50, 161, 17))
         self.checkBox_tsne.setObjectName("checkBox_tsne")
         self.checkBox_dbscan = QtWidgets.QCheckBox(self.gb_clustering_settings)
         self.checkBox_dbscan.setGeometry(QtCore.QRect(20, 80, 111, 17))
@@ -360,7 +360,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -428,7 +428,7 @@ class Ui_MainWindow(object):
         self.label_2.setText(_translate("MainWindow", "Дані для \n"
 "передбачення"))
         self.checkBox_kmeans.setText(_translate("MainWindow", "Метод К-середніх"))
-        self.checkBox_tsne.setText(_translate("MainWindow", "Метод t-SNE"))
+        self.checkBox_tsne.setText(_translate("MainWindow", "Метод K-сер. зі зменш. розм."))
         self.checkBox_dbscan.setText(_translate("MainWindow", "Метод DBSCAN"))
         self.btn_start_clustering.setText(_translate("MainWindow", "Старт"))
         self.data_to_predict.setPlaceholderText(_translate("MainWindow", "n1 n2 n3 n4"))

@@ -30,14 +30,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pandas import read_table
 from sklearn.impute import SimpleImputer
-from sklearn.metrics import f1_score
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
 from sklearn.model_selection import train_test_split
 
-
-# =====================================================================
 
 def download_data(path, separator, index_column, header_row, target_columns):
     """
@@ -65,9 +61,6 @@ def download_data(path, separator, index_column, header_row, target_columns):
     )
 
     return frame[target_columns]
-
-
-# =====================================================================
 
 
 def get_features_and_labels(frame, target_value_column, missed_value_policy, data_percent=0.5):
@@ -112,9 +105,6 @@ def get_features_and_labels(frame, target_value_column, missed_value_policy, dat
     return X_train, X_test, y_train, y_test
 
 
-# =====================================================================
-
-
 def evaluate_learner(X_train, X_test, y_train, y_test):
     """
     Запускається кілька разів з різними алгоритмами, щоб отримати уявлення про
@@ -147,10 +137,7 @@ def evaluate_learner(X_train, X_test, y_train, y_test):
     yield 'RBF модель ($Якість={:.3f}$)'.format(r_2), y_test, y_pred
 
 
-# =====================================================================
-
-
-def plot(results, path):
+def plot(results, path, data_percent):
     """
     Створює графіки для порівняння кількох алгоритмів.
 
@@ -176,7 +163,7 @@ def plot(results, path):
         subplot.plot(y_pred, 'r', label='Передбачені дані')
 
         # Відмітити навчальні дані
-        subplot.axvline(len(y) // 2, linestyle='--', color='0', alpha=0.2)
+        subplot.axvline(len(y) * data_percent, linestyle='--', color='0', alpha=0.2)
 
         # Добавити легенду на граіки
         subplot.legend()
@@ -189,8 +176,6 @@ def plot(results, path):
     # Звільнити пам'ять після закриття графіків
     plt.close()
 
-
-# =====================================================================
 
 def analyze(app, path, settings):
     # Вилучення налаштувань з кортежу
@@ -215,4 +200,4 @@ def analyze(app, path, settings):
     results = list(evaluate_learner(X_train, X_test, y_train, y_test))
 
     app.print_logs("Друк результатів...")
-    plot(results, path)
+    plot(results, path, data_percent)
